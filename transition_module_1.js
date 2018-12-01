@@ -228,19 +228,14 @@
                 setImmediate(fn);
             };
         } else {
-            if (typeof process !== 'undefined' && process.nextTick) {
-                async = function (fn) {
-                    process.nextTick(fn);
-                };
-            } else {
-                async = function (fn) {
-                    setTimeout(fn, 0);
-                };
-            }
+            async = function (fn) {
+                setTimeout(fn, 0);
+            };
         }
         return async;
     })();
     //==========================================================================
+    // 计时器
     // transition.setInterval
     //
     // 用法
@@ -252,6 +247,7 @@
 
     // callback => function|timeHandle
     $._area88.transition.setInterval = (function () {
+
         function AnimatLoop(callback) {
             if (typeof callback === 'function') {
                 let core = AnimatLoop.setInterval(callback);
@@ -272,20 +268,23 @@
         //----------------------------
         !(function (_self) {
 
-            _self.coreFn = (typeof window.requestAnimationFrame !== 'undefined') ? AnimatLoop_request : AnimatLoop_interval;
+            // 决定计时器的方法是哪一种
+            _self.coreMethod = (typeof window.requestAnimationFrame !== 'undefined') ? AnimatLoop_request : AnimatLoop_interval;
 
             //----------------------------
+            // API
             _self.clearInterval = function (timeHandle) {
                 let handle;
 
-                if (typeof (handle = timeHandle.handle) === 'undefined' || !(handle instanceof this.coreFn)) {
+                if (typeof (handle = timeHandle.handle) === 'undefined' || !(handle instanceof this.coreMethod)) {
                     throw new Error('timeHandle type error');
                 }
                 handle.clearInterval();
             };
             //----------------------------
+            // API
             _self.setInterval = function (callback) {
-                let core = new this.coreFn();
+                let core = new this.coreMethod();
                 core.setInterval(callback);
                 return core;
             };
@@ -293,6 +292,8 @@
         })(AnimatLoop);
 
         //----------------------------------------------------------
+        // 计时器方法1
+        // setTimeout
         function AnimatLoop_interval() {
             this.timeInterval = 16;
             this.timeHandle;
@@ -308,6 +309,8 @@
             };
         }).call(AnimatLoop_interval.prototype);
         //----------------------------------------------------------
+        // 计时器方法2
+        // requestAnimationFrame
         function AnimatLoop_request() {
             this.timeHandle = false;
         }
